@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST, Credit & Commission Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            background-color: white;
+        }
+        label, input, select {
+            margin: 10px 0;
+            display: block;
+            font-size: 16px;
+        }
+        input, select {
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            margin: 20px 0;
+            padding: 12px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .copy-button {
+            margin-top: 10px;
+            background-color: #008CBA;
+        }
+        button.copy-button:hover {
+            background-color: #005f73;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            line-height: 1.8;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .label-block {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .final-amount {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Dummy Purchase Price Calculator</h2>
+
+    <label for="purchasePrice">Purchase Price (₹):</label>
+    <input type="number" id="purchasePrice" placeholder="Enter purchase price" step="0.01">
+
+    <label for="margin">Margin (₹):</label>
+    <input type="number" id="margin" placeholder="Enter margin" step="0.01">
+
+    <label for="freight">Freight (Transportation) (₹):</label>
+    <input type="number" id="freight" placeholder="Enter freight cost" step="0.01">
+
+    <label for="commission">Commission Percentage (%):</label>
+    <input type="number" id="commission" placeholder="Enter commission percentage" step="0.01">
+
+    <label for="days">Number of Days (for credit):</label>
+    <input type="number" id="days" placeholder="Enter number of days" step="1">
+
+    <label for="gstOption">Include GST in Final Calculation:</label>
+    <select id="gstOption">
+        <option value="withGST">With GST</option>
+        <option value="withoutGST">Without GST</option>
+    </select>
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div class="result" id="result"></div>
+    
+    <script>
+        function calculate() {
+            // Get input values
+            let purchasePrice = parseFloat(document.getElementById("purchasePrice").value);
+            let margin = parseFloat(document.getElementById("margin").value);
+            let freight = parseFloat(document.getElementById("freight").value);
+            let commissionPercentage = parseFloat(document.getElementById("commission").value);
+            let days = parseInt(document.getElementById("days").value);
+            let gstOption = document.getElementById("gstOption").value;
+
+            // Validation for inputs
+            if (isNaN(purchasePrice) || isNaN(margin) || isNaN(freight) || isNaN(commissionPercentage) || isNaN(days) || days <= 0) {
+                document.getElementById("result").innerHTML = "Please enter valid numbers for all fields.";
+                return;
+            }
+
+            // Calculate total before GST
+            let totalBeforeGST = purchasePrice + margin + freight;
+
+            // GST calculation (18%)
+            let gst = totalBeforeGST * 0.18;
+            let totalAfterGST = totalBeforeGST + gst;
+
+            // Daily credit calculation (18% yearly credit divided by 365 days)
+            let dailyCreditOnTotalBeforeGST = (totalBeforeGST * 0.18) / 365;
+            let dailyCreditOnGST = (gst * 0.18) / 365;
+
+            // Total credit for the number of days
+            let totalCreditForDaysOnTotalBeforeGST = dailyCreditOnTotalBeforeGST * days;
+            let totalCreditForDaysOnGST = dailyCreditOnGST * days;
+
+            // Total credit applied
+            let totalCredit = totalCreditForDaysOnTotalBeforeGST + totalCreditForDaysOnGST;
+
+            // Commission calculation
+            let commission = (totalBeforeGST + gst) * (commissionPercentage / 100);
+
+            // Final price based on user's choice (with or without GST)
+            let finalPriceBeforeGST = totalBeforeGST + totalCredit + commission;
+            let finalPriceAfterGST = totalAfterGST + totalCredit + commission;
+
+            let finalPrice = gstOption === "withGST" ? finalPriceAfterGST : finalPriceBeforeGST;
+
+            // Display result
+            document.getElementById("result").innerHTML = `
+                <div class="label-block">Amount Breakdown:</div>
+                Purchase Price: ₹${purchasePrice.toFixed(2)}<br>
+                Margin: ₹${margin.toFixed(2)}<br>
+                Freight: ₹${freight.toFixed(2)}<br><br>
+
+                <div class="label-block">Total Calculations:</div>
+                <strong>Total Before GST:</strong> ₹${totalBeforeGST.toFixed(2)}<br>
+                GST (18%): ₹${gst.toFixed(2)}<br>
+                <strong>Total After GST:</strong> ₹${totalAfterGST.toFixed(2)}<br><br>
+
+                <div class="label-block">Credit Calculations:</div>
+                Credit on Total Before GST for ${days} days: ₹${totalCreditForDaysOnTotalBeforeGST.toFixed(2)}<br>
+                Credit on GST for ${days} days: ₹${totalCreditForDaysOnGST.toFixed(2)}<br>
+                <strong>Total Credit for ${days} days:</strong> ₹${totalCredit.toFixed(2)}<br><br>
+
+                <div class="label-block">Commission:</div>
+                Commission (${commissionPercentage}%): ₹${commission.toFixed(2)}<br><br>
+
+                <div class="label-block">Final Amount:</div>
+                <div class="final-amount">Final Price (${gstOption === "withGST" ? "With GST" : "Without GST"}): ₹<span id="finalPrice">${finalPrice.toFixed(2)}</span></div>
+
+                <button class="copy-button" onclick="copyToClipboard()">Copy Final Amount</button>
+            `;
+        }
+
+        function copyToClipboard() {
+            // Copy the final price to the clipboard
+            let finalPriceText = document.getElementById('finalPrice').innerText;
+            navigator.clipboard.writeText(finalPriceText).then(() => {
+                alert('Final Price copied to clipboard: ₹' + finalPriceText);
+            });
+        }
+    </script>
+
+</body>
+</html>
